@@ -275,7 +275,7 @@ function App() {
         isStreaming={isStreaming}
       />
       
-      <main className="container mx-auto px-4 py-4 md:py-6 pb-20 max-w-7xl">
+      <main className="container mx-auto px-3 sm:px-4 py-3 sm:py-4 md:py-6 pb-20 max-w-7xl">
         {renderContent()}
       </main>
       

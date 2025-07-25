@@ -30,6 +30,7 @@ interface HeaderProps {
   }
   onSignOut?: () => void
   isConnected?: boolean
+  isStreaming?: boolean
 }
 
 export function Header({ user, onSignOut, isConnected = false }: HeaderProps) {

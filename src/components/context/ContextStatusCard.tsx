@@ -97,11 +97,11 @@ export function ContextStatusCard({
   }
 
   return (
-    <Card className="w-full">
+    <Card className="w-full mobile-card">
       <CardHeader className="pb-4">
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg font-semibold">Context Status</CardTitle>
-          <Badge variant="outline" className="flex items-center gap-1">
+          <Badge variant="outline" className="flex items-center gap-1 connection-indicator">
             <currentPrivacy.icon className="h-3 w-3" />
             <span className="hidden sm:inline">{currentPrivacy.label}</span>
           </Badge>
@@ -123,7 +123,7 @@ export function ContextStatusCard({
                 key={status}
                 variant={availabilityStatus === status ? "default" : "outline"}
                 size="sm"
-                className="justify-start text-xs sm:text-sm"
+                className="justify-start text-xs sm:text-sm mobile-button tap-target"
                 onClick={() => onStatusChange(status as AvailabilityStatus)}
               >
                 <config.icon className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
@@ -148,7 +148,7 @@ export function ContextStatusCard({
             onValueChange={handleEnergyChange}
             max={100}
             step={5}
-            className="w-full"
+            className="w-full mobile-slider"
           />
           <div className="flex justify-between text-xs text-muted-foreground">
             <span>Low</span>
@@ -166,6 +166,7 @@ export function ContextStatusCard({
             <Switch
               checked={focusSessionActive}
               onCheckedChange={onFocusToggle}
+              className="tap-target"
             />
           </div>
           {focusSessionActive && (
@@ -180,7 +181,7 @@ export function ContextStatusCard({
                 value={focusSessionDuration.toString()}
                 onValueChange={(value) => onFocusDurationChange(parseInt(value))}
               >
-                <SelectTrigger className="w-full">
+                <SelectTrigger className="w-full mobile-input">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -203,7 +204,7 @@ export function ContextStatusCard({
             Timezone
           </label>
           <Select value={timezone} onValueChange={onTimezoneChange}>
-            <SelectTrigger>
+            <SelectTrigger className="mobile-input">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -229,7 +230,7 @@ export function ContextStatusCard({
                 key={scope}
                 variant={privacyScope === scope ? "default" : "outline"}
                 size="sm"
-                className="flex-col h-auto py-2 sm:py-3"
+                className="flex-col h-auto py-2 sm:py-3 mobile-button tap-target"
                 onClick={() => onPrivacyScopeChange(scope as PrivacyScope)}
               >
                 <config.icon className="h-3 w-3 sm:h-4 sm:w-4 mb-1" />

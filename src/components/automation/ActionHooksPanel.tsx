@@ -379,36 +379,47 @@ export function ActionHooksPanel({ userId }: ActionHooksPanelProps) {
             {actionHooks.map((hook) => {
               const actionConfig = actionTypeConfig[hook.actionType as keyof typeof actionTypeConfig]
               const ActionIcon = actionConfig?.icon || Zap
+              const isActive = Number(hook.isActive) > 0
               
               return (
-                <div key={hook.id} className="flex items-center justify-between p-4 border rounded-lg">
+                <div 
+                  key={hook.id} 
+                  className={`action-hook-card ${isActive ? 'action-hook-active' : ''} flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-lg space-y-3 sm:space-y-0`}
+                >
                   <div className="flex items-center gap-3">
-                    <div className={`h-8 w-8 rounded-full ${actionConfig?.color || 'bg-gray-500'} flex items-center justify-center`}>
-                      <ActionIcon className="h-4 w-4 text-white" />
+                    <div className={`h-10 w-10 sm:h-8 sm:w-8 rounded-full ${actionConfig?.color || 'bg-gray-500'} flex items-center justify-center connection-indicator ${isActive ? '' : 'disconnected'}`}>
+                      <ActionIcon className="h-5 w-5 sm:h-4 sm:w-4 text-white" />
                     </div>
-                    <div>
-                      <h4 className="font-medium">{hook.name}</h4>
-                      <p className="text-sm text-muted-foreground">
+                    <div className="flex-1">
+                      <h4 className="font-medium text-sm sm:text-base">{hook.name}</h4>
+                      <p className="text-xs sm:text-sm text-muted-foreground">
                         {actionConfig?.description || 'Custom action'}
                       </p>
                     </div>
                   </div>
                   
-                  <div className="flex items-center gap-2">
-                    <Badge variant={Number(hook.isActive) > 0 ? "default" : "secondary"}>
-                      {Number(hook.isActive) > 0 ? "Active" : "Inactive"}
-                    </Badge>
-                    <Switch
-                      checked={Number(hook.isActive) > 0}
-                      onCheckedChange={(checked) => toggleActionHook(hook.id, checked)}
-                    />
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => deleteActionHook(hook.id)}
+                  <div className="flex items-center justify-between sm:justify-end gap-3 sm:gap-2">
+                    <Badge 
+                      variant={isActive ? "default" : "secondary"}
+                      className="text-xs"
                     >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+                      {isActive ? "Active" : "Inactive"}
+                    </Badge>
+                    <div className="flex items-center gap-2">
+                      <Switch
+                        checked={isActive}
+                        onCheckedChange={(checked) => toggleActionHook(hook.id, checked)}
+                        className="tap-target"
+                      />
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => deleteActionHook(hook.id)}
+                        className="tap-target mobile-button"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </div>
                 </div>
               )

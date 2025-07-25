@@ -6,6 +6,7 @@ interface RealtimeContextHook {
   contextCapsule: Partial<ContextCapsule> | null
   contextHistory: ContextHistory[]
   isConnected: boolean
+  isStreaming: boolean
   updateContext: (updates: Partial<ContextCapsule>) => Promise<void>
   subscribeToContext: (userId: string) => Promise<void>
   unsubscribeFromContext: () => Promise<void>
@@ -14,25 +15,105 @@ interface RealtimeContextHook {
 // Helper functions for action hooks
 const executeWebhookAction = async (config: any, capsule: Partial<ContextCapsule>) => {
   if (config.url) {
-    await blink.data.fetch({
-      url: config.url,
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: { context: capsule, timestamp: Date.now() }
-    })
+    try {
+      const response = await blink.data.fetch({
+        url: config.url,
+        method: config.method || 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'User-Agent': 'Capsule-Context-Service/1.0'
+        },
+        body: { 
+          context: capsule, 
+          timestamp: Date.now(),
+          event: 'context_changed',
+          source: 'capsule'
+        }
+      })
+      console.log('Webhook executed successfully:', response.status)
+    } catch (error) {
+      console.error('Webhook execution failed:', error)
+    }
   }
 }
 
 const executeNotificationAction = async (config: any, capsule: Partial<ContextCapsule>) => {
   if (config.message) {
-    // Could integrate with notification system
-    console.log('Notification:', config.message, capsule)
+    try {
+      // Enhanced notification with context interpolation
+      const message = config.message
+        .replace('{status}', capsule.availabilityStatus || 'unknown')
+        .replace('{energy}', capsule.energyLevel?.toString() || '0')
+        .replace('{timezone}', capsule.timezone || 'UTC')
+      
+      // For now, log the notification - could integrate with push notifications
+      console.log('📱 Context Notification:', message, {
+        context: capsule,
+        timestamp: new Date().toISOString()
+      })
+      
+      // Could send email notification using Blink SDK
+      // await blink.notifications.email({
+      //   to: user.email,
+      //   subject: 'Context Update',
+      //   text: message
+      // })
+    } catch (error) {
+      console.error('Notification execution failed:', error)
+    }
   }
 }
 
 const executeIntegrationUpdate = async (config: any, capsule: Partial<ContextCapsule>) => {
-  // Update external integrations based on context
-  console.log('Integration update:', config, capsule)
+  try {
+    // Enhanced integration updates with service-specific logic
+    const statusMap = {
+      available: '🟢 Available',
+      focus: '🔵 Focus Mode',
+      dnd: '🔴 Do Not Disturb',
+      away: '🟡 Away'
+    }
+    
+    const status = statusMap[capsule.availabilityStatus as keyof typeof statusMap] || '⚪ Unknown'
+    const energyEmoji = (capsule.energyLevel || 0) > 75 ? '⚡' : (capsule.energyLevel || 0) > 50 ? '🔋' : '🪫'
+    
+    switch (config.service) {
+      case 'slack':
+        console.log('🔗 Slack Status Update:', {
+          status_text: `${status} ${energyEmoji} ${capsule.energyLevel}%`,
+          status_emoji: capsule.availabilityStatus === 'focus' ? ':brain:' : ':wave:',
+          context: capsule
+        })
+        break
+      
+      case 'discord':
+        console.log('🎮 Discord Status Update:', {
+          activity: `${status} - Energy: ${capsule.energyLevel}%`,
+          context: capsule
+        })
+        break
+      
+      case 'teams':
+        console.log('💼 Teams Status Update:', {
+          availability: capsule.availabilityStatus,
+          message: `Energy: ${capsule.energyLevel}%`,
+          context: capsule
+        })
+        break
+      
+      case 'calendar':
+        console.log('📅 Calendar Integration:', {
+          busy: capsule.availabilityStatus === 'focus' || capsule.availabilityStatus === 'dnd',
+          context: capsule
+        })
+        break
+      
+      default:
+        console.log('🔧 Generic Integration Update:', config, capsule)
+    }
+  } catch (error) {
+    console.error('Integration update failed:', error)
+  }
 }
 
 const executeActionHook = async (hook: any, capsule: Partial<ContextCapsule>) => {
@@ -91,6 +172,7 @@ export function useRealtimeContext(): RealtimeContextHook {
   const [contextCapsule, setContextCapsule] = useState<Partial<ContextCapsule> | null>(null)
   const [contextHistory, setContextHistory] = useState<ContextHistory[]>([])
   const [isConnected, setIsConnected] = useState(false)
+  const [isStreaming, setIsStreaming] = useState(false)
   const [channel, setChannel] = useState<any>(null)
 
   const triggerActionHooks = useCallback(async (capsule: Partial<ContextCapsule>, updates: Partial<ContextCapsule>) => {
@@ -119,12 +201,14 @@ export function useRealtimeContext(): RealtimeContextHook {
 
   const subscribeToContext = useCallback(async (userId: string) => {
     try {
+      setIsStreaming(true)
+      
       // Create realtime channel for context updates
       const contextChannel = blink.realtime.channel(`context-${userId}`)
       
       await contextChannel.subscribe({
         userId,
-        metadata: { type: 'context_subscriber' }
+        metadata: { type: 'context_subscriber', timestamp: Date.now() }
       })
 
       // Listen for context updates
@@ -146,8 +230,14 @@ export function useRealtimeContext(): RealtimeContextHook {
         }
       })
 
+      // Listen for presence changes to track connection status
+      contextChannel.onPresence((users) => {
+        setIsConnected(users.length > 0)
+      })
+
       setChannel(contextChannel)
       setIsConnected(true)
+      setIsStreaming(false)
 
       // Load initial context from database
       const existingContext = await blink.db.contextCapsules.list({
@@ -188,6 +278,7 @@ export function useRealtimeContext(): RealtimeContextHook {
     } catch (error) {
       console.error('Failed to subscribe to context:', error)
       setIsConnected(false)
+      setIsStreaming(false)
     }
   }, [])
 
@@ -196,6 +287,7 @@ export function useRealtimeContext(): RealtimeContextHook {
       await channel.unsubscribe()
       setChannel(null)
       setIsConnected(false)
+      setIsStreaming(false)
     }
   }, [channel])
 
@@ -265,6 +357,7 @@ export function useRealtimeContext(): RealtimeContextHook {
     contextCapsule,
     contextHistory,
     isConnected,
+    isStreaming,
     updateContext,
     subscribeToContext,
     unsubscribeFromContext
