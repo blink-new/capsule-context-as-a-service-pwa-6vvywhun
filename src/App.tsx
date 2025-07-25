@@ -6,6 +6,9 @@ import { ContextStatusCard } from '@/components/context/ContextStatusCard'
 import { ContextFeed } from '@/components/context/ContextFeed'
 import { MetricsDashboard } from '@/components/metrics/MetricsDashboard'
 import { ActionHooksPanel } from '@/components/automation/ActionHooksPanel'
+import TeamCollaboration from '@/components/team/TeamCollaboration'
+import IntegrationsPanel from '@/components/integrations/IntegrationsPanel'
+import AdvancedAnalytics from '@/components/analytics/AdvancedAnalytics'
 import { useRealtimeContext } from '@/hooks/useRealtimeContext'
 import { blink } from '@/blink/client'
 import { AvailabilityStatus, PrivacyScope, ContextCapsule } from '@/types/context'
@@ -155,48 +158,24 @@ function App() {
           </div>
         )
       
+      case 'analytics':
+        return (
+          <div className="max-w-6xl mx-auto">
+            <AdvancedAnalytics currentUser={user} />
+          </div>
+        )
+      
       case 'team':
         return (
-          <div className="space-y-4 md:space-y-6 max-w-4xl mx-auto">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Users className="h-5 w-5" />
-                  Team Context
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground mb-4">
-                  View and manage team member context visibility and sharing settings.
-                </p>
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between p-3 border rounded-lg">
-                    <div className="flex items-center gap-3">
-                      <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
-                        <span className="text-sm font-medium">JD</span>
-                      </div>
-                      <div>
-                        <p className="font-medium">John Doe</p>
-                        <p className="text-sm text-muted-foreground">Available • 85% energy</p>
-                      </div>
-                    </div>
-                    <Badge variant="secondary">Team</Badge>
-                  </div>
-                  <div className="flex items-center justify-between p-3 border rounded-lg">
-                    <div className="flex items-center gap-3">
-                      <div className="h-8 w-8 rounded-full bg-accent/10 flex items-center justify-center">
-                        <span className="text-sm font-medium">AS</span>
-                      </div>
-                      <div>
-                        <p className="font-medium">Alice Smith</p>
-                        <p className="text-sm text-muted-foreground">Focus Mode • 92% energy</p>
-                      </div>
-                    </div>
-                    <Badge variant="secondary">Team</Badge>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+          <div className="max-w-6xl mx-auto">
+            <TeamCollaboration currentUser={user} />
+          </div>
+        )
+      
+      case 'integrations':
+        return (
+          <div className="max-w-6xl mx-auto">
+            <IntegrationsPanel currentUser={user} />
           </div>
         )
       
@@ -239,7 +218,7 @@ function App() {
                       <h4 className="font-medium">Integrations</h4>
                       <p className="text-sm text-muted-foreground">Connect apps and services</p>
                     </div>
-                    <Button variant="outline" size="sm">
+                    <Button variant="outline" size="sm" onClick={() => setActiveTab('integrations')}>
                       <Webhook className="h-4 w-4 mr-2" />
                       Setup
                     </Button>

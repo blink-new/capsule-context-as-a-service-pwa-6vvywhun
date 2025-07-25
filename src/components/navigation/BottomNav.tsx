@@ -6,7 +6,9 @@ import {
   BarChart3, 
   Settings, 
   Zap,
-  Users
+  Users,
+  TrendingUp,
+  Webhook
 } from 'lucide-react'
 
 interface BottomNavProps {
@@ -15,10 +17,10 @@ interface BottomNavProps {
 }
 
 const navItems = [
-  { id: 'dashboard', label: 'Dashboard', icon: Home },
-  { id: 'feed', label: 'Feed', icon: Activity, badge: 3 },
-  { id: 'metrics', label: 'Metrics', icon: BarChart3 },
+  { id: 'dashboard', label: 'Home', icon: Home },
+  { id: 'analytics', label: 'Analytics', icon: TrendingUp },
   { id: 'team', label: 'Team', icon: Users },
+  { id: 'integrations', label: 'Apps', icon: Webhook },
   { id: 'settings', label: 'Settings', icon: Settings }
 ]
 
